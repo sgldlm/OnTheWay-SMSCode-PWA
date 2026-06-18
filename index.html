@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#fffaf0" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="在路上验证码" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon-192.svg" sizes="192x192" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.svg" />
+    <title>在路上短信验证码生成器</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4efe6;
+        --card: #fffaf0;
+        --ink: #17130f;
+        --muted: #71675c;
+        --line: #eadbc6;
+        --accent: #ff6a3d;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        min-height: 100dvh;
+        margin: 0;
+        padding: max(22px, env(safe-area-inset-top)) 18px max(22px, env(safe-area-inset-bottom));
+        background:
+          radial-gradient(circle at top left, rgba(255, 106, 61, 0.18), transparent 34%),
+          var(--bg);
+        color: var(--ink);
+      }
+      main {
+        display: grid;
+        max-width: 560px;
+        min-height: calc(100dvh - 44px);
+        margin: 0 auto;
+        align-content: center;
+      }
+      .card {
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--card);
+        box-shadow: 0 24px 70px rgba(53, 33, 12, 0.16);
+      }
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.16em;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(25px, 8vw, 38px);
+        line-height: 1.05;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+      .warning {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 16px;
+        background: #fff0e9;
+        color: #8a3a1e;
+        font-weight: 800;
+      }
+      label {
+        display: grid;
+        gap: 8px;
+        margin-top: 18px;
+        font-weight: 900;
+      }
+      input {
+        height: 52px;
+        width: 100%;
+        padding: 0 14px;
+        border: 1px solid #d9cbb7;
+        border-radius: 14px;
+        background: #fff;
+        color: var(--ink);
+        font-size: 21px;
+        letter-spacing: 0.08em;
+        outline: none;
+      }
+      button {
+        width: 100%;
+        min-height: 46px;
+        margin-top: 12px;
+        border: 0;
+        border-radius: 14px;
+        background: var(--accent);
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 900;
+      }
+      button.secondary {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+      }
+      button:active { transform: translateY(1px) scale(0.99); }
+      output {
+        display: block;
+        margin-top: 18px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #fff;
+        color: var(--accent);
+        font-family: Consolas, "Liberation Mono", monospace;
+        font-size: clamp(38px, 13vw, 62px);
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-align: center;
+      }
+      textarea {
+        width: 100%;
+        min-height: 124px;
+        margin-top: 12px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #fff;
+        color: #292018;
+        line-height: 1.65;
+        resize: vertical;
+      }
+      small {
+        display: block;
+        margin-top: 12px;
+        color: #86786b;
+        line-height: 1.6;
+      }
+      .toast {
+        min-height: 22px;
+        margin-top: 10px;
+        color: var(--accent);
+        font-weight: 800;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="card">
+        <p class="eyebrow">ON THE WAY</p>
+        <h1>在路上验证码生成器</h1>
+        <p>输入用户付款留言里的手机号，生成固定 6 位验证码，再把短信内容发给用户。</p>
+        <p class="warning">同一个手机号永远生成同一个验证码。请确认手机号来自付款留言，避免发错人。</p>
+        <label>
+          用户手机号
+          <input id="phone" inputmode="numeric" maxlength="11" placeholder="例如 13800138000" autocomplete="off" />
+        </label>
+        <button id="generate" type="button">生成验证码</button>
+        <output id="sms-code">------</output>
+        <textarea id="sms-text" readonly>请输入手机号后生成短信内容。</textarea>
+        <button id="copy-sms" type="button">复制短信内容</button>
+        <button id="install-button" class="secondary" type="button" hidden>安装到手机桌面</button>
+        <p id="toast" class="toast"></p>
+        <small>安装提示：请用手机浏览器打开 HTTPS 地址，然后点“安装到手机桌面”或浏览器菜单里的“添加到主屏幕”。</small>
+      </section>
+    </main>
+    <script>
+      const AUTH_SALT = "TIME_MACHINE_PHONE_LICENSE_2026_BQ";
+      let deferredInstallPrompt = null;
+
+      function hashText(text) {
+        let hash = 2166136261;
+        const source = String(text || "");
+        for (let index = 0; index < source.length; index += 1) {
+          hash ^= source.charCodeAt(index);
+          hash = Math.imul(hash, 16777619);
+        }
+        return hash >>> 0;
+      }
+
+      function normalizePhone(value) {
+        return String(value || "").replace(/\D/g, "").slice(0, 11);
+      }
+
+      function isValidMainlandPhone(value) {
+        return /^1[3-9]\d{9}$/.test(normalizePhone(value));
+      }
+
+      function getCodeForPhone(phone) {
+        const normalized = normalizePhone(phone);
+        if (!isValidMainlandPhone(normalized)) return "";
+        const hash = hashText(`${normalized}|${AUTH_SALT}|SMS`);
+        return String(100000 + (hash % 900000));
+      }
+
+      const phoneInput = document.querySelector("#phone");
+      const codeOutput = document.querySelector("#sms-code");
+      const smsText = document.querySelector("#sms-text");
+      const generateButton = document.querySelector("#generate");
+      const copyButton = document.querySelector("#copy-sms");
+      const installButton = document.querySelector("#install-button");
+      const toast = document.querySelector("#toast");
+
+      function fallbackCopyText(text) {
+        const field = document.createElement("textarea");
+        field.value = text;
+        field.setAttribute("readonly", "readonly");
+        field.style.position = "fixed";
+        field.style.top = "-1000px";
+        document.body.append(field);
+        field.select();
+        let ok = false;
+        try { ok = document.execCommand("copy"); } catch (error) { ok = false; }
+        field.remove();
+        return ok;
+      }
+
+      async function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+          try {
+            await navigator.clipboard.writeText(text);
+            return true;
+          } catch (error) {
+            return fallbackCopyText(text);
+          }
+        }
+        return fallbackCopyText(text);
+      }
+
+      function render() {
+        const phone = normalizePhone(phoneInput.value);
+        phoneInput.value = phone;
+        const code = getCodeForPhone(phone);
+        if (!code) {
+          codeOutput.value = "------";
+          codeOutput.textContent = "------";
+          smsText.value = "请输入正确的 11 位手机号。";
+          toast.textContent = "";
+          return;
+        }
+        const message = `【在路上】您的同行者完整版验证码是 ${code}。手机号 ${phone} 对应此验证码，请在 App 内输入手机号和验证码完成解锁。`;
+        codeOutput.value = code;
+        codeOutput.textContent = code;
+        smsText.value = message;
+      }
+
+      generateButton.addEventListener("click", render);
+      phoneInput.addEventListener("input", render);
+      copyButton.addEventListener("click", async () => {
+        const copied = await copyText(smsText.value);
+        toast.textContent = copied ? "短信内容已复制。" : "复制失败，请手动选择短信内容。";
+        if (navigator.vibrate) navigator.vibrate(35);
+      });
+
+      window.addEventListener("beforeinstallprompt", (event) => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        installButton.hidden = false;
+      });
+
+      installButton.addEventListener("click", async () => {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        installButton.hidden = true;
+      });
+
+      if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js");
+        });
+      }
+    </script>
+  </body>
+</html>
