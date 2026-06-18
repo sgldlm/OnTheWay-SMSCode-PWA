@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="在路上">
+  <rect width="192" height="192" rx="42" fill="#11100e"/>
+  <circle cx="96" cy="96" r="66" fill="none" stroke="#eadbc6" stroke-width="6" opacity=".26"/>
+  <path d="M42 127c30-50 73-73 128-69" fill="none" stroke="#ff6a3d" stroke-width="13" stroke-linecap="round"/>
+  <circle cx="154" cy="63" r="8" fill="#ff6a3d"/>
+  <text x="96" y="118" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="68" font-weight="900" fill="#fffaf0">路</text>
+</svg>
